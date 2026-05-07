@@ -17,177 +17,245 @@
         <button id="copySummary" class="primary" type="button">Copy executive summary</button>
       </header>
 
-      <section class="workspace">
-        <form id="calculator" class="panel input-panel">
+      <nav class="tabs" aria-label="Calculator views">
+        <button class="tab-button active" type="button" data-tab="calculatorView">Calculator</button>
+        <button class="tab-button" type="button" data-tab="guidanceView">Input guidance</button>
+      </nav>
+
+      <section id="calculatorView" class="tab-view active">
+        <section class="workspace">
+          <form id="calculator" class="panel input-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Customer Environment</p>
+                <h2>Inputs</h2>
+              </div>
+              <span class="status-pill">Local calculation</span>
+            </div>
+
+            <div class="input-grid">
+              <label>
+                Sites
+                <input id="sites" type="number" min="1" step="1" value="3" />
+              </label>
+              <label>
+                Production lines
+                <input id="productionLines" type="number" min="1" step="1" value="12" />
+              </label>
+              <label>
+                OT endpoints
+                <input id="endpoints" type="number" min="1" step="1" value="850" />
+              </label>
+              <label>
+                Legacy percentage
+                <div class="input-suffix">
+                  <input id="legacyPercent" type="number" min="0" max="100" step="1" value="45" />
+                  <span>%</span>
+                </div>
+              </label>
+              <label>
+                Downtime cost per hour
+                <div class="input-prefix">
+                  <span>$</span>
+                  <input id="downtimeCost" type="number" min="0" step="1000" value="75000" />
+                </div>
+              </label>
+              <label>
+                Incidents per year
+                <input id="incidents" type="number" min="0" step="0.1" value="2.5" />
+              </label>
+              <label>
+                Downtime hours per incident
+                <input id="downtimeHours" type="number" min="0" step="0.5" value="8" />
+              </label>
+              <label>
+                Incident recovery cost
+                <div class="input-prefix">
+                  <span>$</span>
+                  <input id="recoveryCost" type="number" min="0" step="1000" value="60000" />
+                </div>
+              </label>
+              <label>
+                OT/security FTE count
+                <input id="fteCount" type="number" min="0" step="0.1" value="4" />
+              </label>
+              <label>
+                Hourly FTE cost
+                <div class="input-prefix">
+                  <span>$</span>
+                  <input id="fteHourlyCost" type="number" min="0" step="1" value="95" />
+                </div>
+              </label>
+              <label>
+                Investment amount
+                <div class="input-prefix">
+                  <span>$</span>
+                  <input id="investment" type="number" min="0" step="1000" value="450000" />
+                </div>
+              </label>
+              <label>
+                Calculation period
+                <div class="input-suffix">
+                  <input id="periodYears" type="number" min="1" max="10" step="1" value="3" />
+                  <span>years</span>
+                </div>
+              </label>
+            </div>
+
+            <div class="disclaimer">
+              This calculator is for business case estimation only. All assumptions must be validated with the customer's finance, OT and risk teams.
+            </div>
+          </form>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Solution Mix</p>
+                <h2>Product Selection</h2>
+              </div>
+              <span id="selectedCount" class="status-pill">0 selected</span>
+            </div>
+
+            <div id="products" class="product-list">
+              <article class="product-row">
+                <label class="check-row">
+                  <input class="product-enabled" type="checkbox" data-product="Stellar" checked />
+                  <span>Stellar</span>
+                </label>
+                <label>
+                  Assumed risk reduction
+                  <div class="input-suffix compact">
+                    <input class="risk-input" type="number" min="0" max="100" step="1" value="22" data-product="Stellar" />
+                    <span>%</span>
+                  </div>
+                </label>
+              </article>
+              <article class="product-row">
+                <label class="check-row">
+                  <input class="product-enabled" type="checkbox" data-product="Edge" checked />
+                  <span>Edge</span>
+                </label>
+                <label>
+                  Assumed risk reduction
+                  <div class="input-suffix compact">
+                    <input class="risk-input" type="number" min="0" max="100" step="1" value="30" data-product="Edge" />
+                    <span>%</span>
+                  </div>
+                </label>
+              </article>
+              <article class="product-row">
+                <label class="check-row">
+                  <input class="product-enabled" type="checkbox" data-product="Element" checked />
+                  <span>Element</span>
+                </label>
+                <label>
+                  Assumed risk reduction
+                  <div class="input-suffix compact">
+                    <input class="risk-input" type="number" min="0" max="100" step="1" value="18" data-product="Element" />
+                    <span>%</span>
+                  </div>
+                </label>
+              </article>
+              <article class="product-row">
+                <label class="check-row">
+                  <input class="product-enabled" type="checkbox" data-product="Sennin/SageOne" />
+                  <span>Sennin/SageOne</span>
+                </label>
+                <label>
+                  Assumed risk reduction
+                  <div class="input-suffix compact">
+                    <input class="risk-input" type="number" min="0" max="100" step="1" value="20" data-product="Sennin/SageOne" />
+                    <span>%</span>
+                  </div>
+                </label>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section class="panel results-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Customer Environment</p>
-              <h2>Inputs</h2>
+              <p class="eyebrow">Financial Impact</p>
+              <h2>Conservative / Expected / Aggressive Scenarios</h2>
             </div>
-            <span class="status-pill">Local calculation</span>
+            <strong id="effectiveReduction">-</strong>
           </div>
 
-          <div class="input-grid">
-            <label>
-              Sites
-              <input id="sites" type="number" min="1" step="1" value="3" />
-            </label>
-            <label>
-              Production lines
-              <input id="productionLines" type="number" min="1" step="1" value="12" />
-            </label>
-            <label>
-              OT endpoints
-              <input id="endpoints" type="number" min="1" step="1" value="850" />
-            </label>
-            <label>
-              Legacy percentage
-              <div class="input-suffix">
-                <input id="legacyPercent" type="number" min="0" max="100" step="1" value="45" />
-                <span>%</span>
-              </div>
-            </label>
-            <label>
-              Downtime cost per hour
-              <div class="input-prefix">
-                <span>$</span>
-                <input id="downtimeCost" type="number" min="0" step="1000" value="75000" />
-              </div>
-            </label>
-            <label>
-              Incidents per year
-              <input id="incidents" type="number" min="0" step="0.1" value="2.5" />
-            </label>
-            <label>
-              Downtime hours per incident
-              <input id="downtimeHours" type="number" min="0" step="0.5" value="8" />
-            </label>
-            <label>
-              Incident recovery cost
-              <div class="input-prefix">
-                <span>$</span>
-                <input id="recoveryCost" type="number" min="0" step="1000" value="60000" />
-              </div>
-            </label>
-            <label>
-              OT/security FTE count
-              <input id="fteCount" type="number" min="0" step="0.1" value="4" />
-            </label>
-            <label>
-              Hourly FTE cost
-              <div class="input-prefix">
-                <span>$</span>
-                <input id="fteHourlyCost" type="number" min="0" step="1" value="95" />
-              </div>
-            </label>
-            <label>
-              Investment amount
-              <div class="input-prefix">
-                <span>$</span>
-                <input id="investment" type="number" min="0" step="1000" value="450000" />
-              </div>
-            </label>
-            <label>
-              Calculation period
-              <div class="input-suffix">
-                <input id="periodYears" type="number" min="1" max="10" step="1" value="3" />
-                <span>years</span>
-              </div>
-            </label>
-          </div>
+          <div id="scenarioCards" class="scenario-grid"></div>
+        </section>
 
-          <div class="disclaimer">
-            This calculator is for business case estimation only. All assumptions must be validated with the customer's finance, OT and risk teams.
-          </div>
-        </form>
-
-        <section class="panel">
+        <section class="panel executive-panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Solution Mix</p>
-              <h2>Product Selection</h2>
+              <p class="eyebrow">Workshop Output</p>
+              <h2>Executive Summary</h2>
             </div>
-            <span id="selectedCount" class="status-pill">0 selected</span>
+            <span id="copyStatus" class="copy-status">Ready</span>
           </div>
-
-          <div id="products" class="product-list">
-            <article class="product-row">
-              <label class="check-row">
-                <input class="product-enabled" type="checkbox" data-product="Stellar" checked />
-                <span>Stellar</span>
-              </label>
-              <label>
-                Assumed risk reduction
-                <div class="input-suffix compact">
-                  <input class="risk-input" type="number" min="0" max="100" step="1" value="22" data-product="Stellar" />
-                  <span>%</span>
-                </div>
-              </label>
-            </article>
-            <article class="product-row">
-              <label class="check-row">
-                <input class="product-enabled" type="checkbox" data-product="Edge" checked />
-                <span>Edge</span>
-              </label>
-              <label>
-                Assumed risk reduction
-                <div class="input-suffix compact">
-                  <input class="risk-input" type="number" min="0" max="100" step="1" value="30" data-product="Edge" />
-                  <span>%</span>
-                </div>
-              </label>
-            </article>
-            <article class="product-row">
-              <label class="check-row">
-                <input class="product-enabled" type="checkbox" data-product="Element" checked />
-                <span>Element</span>
-              </label>
-              <label>
-                Assumed risk reduction
-                <div class="input-suffix compact">
-                  <input class="risk-input" type="number" min="0" max="100" step="1" value="18" data-product="Element" />
-                  <span>%</span>
-                </div>
-              </label>
-            </article>
-            <article class="product-row">
-              <label class="check-row">
-                <input class="product-enabled" type="checkbox" data-product="Sennin/SageOne" />
-                <span>Sennin/SageOne</span>
-              </label>
-              <label>
-                Assumed risk reduction
-                <div class="input-suffix compact">
-                  <input class="risk-input" type="number" min="0" max="100" step="1" value="20" data-product="Sennin/SageOne" />
-                  <span>%</span>
-                </div>
-              </label>
-            </article>
-          </div>
+          <pre id="summaryText"></pre>
         </section>
       </section>
 
-      <section class="panel results-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Financial Impact</p>
-            <h2>Conservative / Expected / Aggressive Scenarios</h2>
+      <section id="guidanceView" class="tab-view">
+        <section class="panel guidance-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Workshop Method</p>
+              <h2>Which Numbers To Use</h2>
+            </div>
+            <span class="status-pill">Finance validated</span>
           </div>
-          <strong id="effectiveReduction">-</strong>
-        </div>
 
-        <div id="scenarioCards" class="scenario-grid"></div>
-      </section>
-
-      <section class="panel executive-panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Workshop Output</p>
-            <h2>Executive Summary</h2>
+          <div class="guidance-grid">
+            <article class="guidance-card">
+              <h3>Environment Size</h3>
+              <p><strong>Sites</strong> should be physical plants, factories, labs, warehouses or production locations included in scope.</p>
+              <p><strong>Production lines</strong> should count lines where downtime has measurable production, safety or logistics impact.</p>
+              <p><strong>OT endpoints</strong> should include HMIs, engineering workstations, OT servers, fixed-function Windows systems and other protected industrial endpoints.</p>
+            </article>
+            <article class="guidance-card">
+              <h3>Legacy Exposure</h3>
+              <p>Use the percentage of OT endpoints or systems that are difficult to patch, unsupported, running legacy OS versions or operationally constrained.</p>
+              <p>Use a conservative estimate if the inventory is incomplete. Do not include normal IT endpoints unless they are part of the OT scope.</p>
+            </article>
+            <article class="guidance-card">
+              <h3>Downtime Cost</h3>
+              <p>Use finance-approved cost per hour. Include lost production margin, scrap, restart labor, missed SLA penalties and emergency logistics where applicable.</p>
+              <p>If the customer does not know the number, ask finance or plant operations for a low, expected and high estimate before using the output externally.</p>
+            </article>
+            <article class="guidance-card">
+              <h3>Incident Frequency</h3>
+              <p><strong>Incidents per year</strong> should be based on the last 24-36 months of OT-impacting malware, ransomware, unauthorized access, infected media, segmentation failures or recovery events.</p>
+              <p>For a first workshop, separate confirmed OT incidents from near misses and use the lower confirmed number in the conservative case.</p>
+            </article>
+            <article class="guidance-card">
+              <h3>Recovery Cost</h3>
+              <p>Use the average direct recovery cost per incident: internal labor, external response, rebuilds, forensic support, expedited spares, validation and overtime.</p>
+              <p>Do not double count downtime cost here. Keep downtime in the downtime fields and recovery cost in this field.</p>
+            </article>
+            <article class="guidance-card">
+              <h3>Operational Efficiency</h3>
+              <p><strong>FTE count</strong> should include people who spend time on OT security operations, patch exceptions, malware handling, incident response, asset checks or compensating controls.</p>
+              <p><strong>Hourly FTE cost</strong> should be fully loaded cost if finance can provide it. If not, use salary plus benefits and overhead divided by annual working hours.</p>
+            </article>
+            <article class="guidance-card">
+              <h3>Investment</h3>
+              <p>Include software, hardware, services, deployment, support and internal project effort if the customer wants a full business case.</p>
+              <p>Use the same currency across all inputs. The calculator displays USD formatting, but the math works for any consistent currency.</p>
+            </article>
+            <article class="guidance-card">
+              <h3>Risk Reduction Assumptions</h3>
+              <p>Product percentages are editable assumptions, not guarantees. Use lower values until the customer validates coverage, deployment scope and operating model.</p>
+              <p>A good starting point is to keep expected combined reduction below 30-40% unless there is strong evidence from incidents, controls mapping or validated risk analysis.</p>
+            </article>
+            <article class="guidance-card">
+              <h3>Scenario Discipline</h3>
+              <p><strong>Conservative</strong> should be defensible to finance. <strong>Expected</strong> should represent the agreed planning case. <strong>Aggressive</strong> should be used only for upside discussion.</p>
+              <p>Before sharing externally, validate assumptions with finance, OT operations and risk owners.</p>
+            </article>
           </div>
-          <span id="copyStatus" class="copy-status">Ready</span>
-        </div>
-        <pre id="summaryText"></pre>
+        </section>
       </section>
     </main>
 
