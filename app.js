@@ -164,17 +164,46 @@ function render() {
 
 async function copySummary() {
   const summary = summaryTextEl.textContent;
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(summary);
+      copyStatusEl.textContent = "Copied";
+      setTimeout(() => {
+        copyStatusEl.textContent = "Ready";
+      }, 1800);
+      return;
+    } catch {
+      // Fall through to the textarea fallback for file previews and blocked permissions.
+    }
+  }
+
+  const textArea = document.createElement("textarea");
+  textArea.value = summary;
+  textArea.setAttribute("readonly", "");
+  textArea.style.position = "fixed";
+  textArea.style.left = "-9999px";
+  textArea.style.top = "0";
+  document.body.appendChild(textArea);
+  textArea.select();
+  textArea.setSelectionRange(0, textArea.value.length);
+
   try {
-    await navigator.clipboard.writeText(summary);
-    copyStatusEl.textContent = "Copied";
+    const copied = document.execCommand("copy");
+    copyStatusEl.textContent = copied ? "Copied" : "Copy blocked";
   } catch {
+    copyStatusEl.textContent = "Copy blocked";
+  } finally {
+    document.body.removeChild(textArea);
+  }
+
+  if (copyStatusEl.textContent === "Copy blocked") {
     const selection = window.getSelection();
     const range = document.createRange();
     range.selectNodeContents(summaryTextEl);
     selection.removeAllRanges();
     selection.addRange(range);
-    copyStatusEl.textContent = "Select text to copy";
   }
+
   setTimeout(() => {
     copyStatusEl.textContent = "Ready";
   }, 1800);
