@@ -69,13 +69,20 @@ select {
 }
 
 .tabs {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 6px;
   margin-bottom: 18px;
   padding: 5px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 8px;
   background: rgba(18, 7, 36, 0.74);
+}
+
+.tab-buttons {
+  display: inline-flex;
+  gap: 6px;
 }
 
 .tab-button {
@@ -92,6 +99,21 @@ select {
 .tab-button.active {
   background: var(--accent);
   color: #fff;
+}
+
+.currency-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.currency-control select {
+  width: 92px;
+  height: 38px;
+  margin: 0;
 }
 
 .tab-view {
@@ -484,7 +506,22 @@ input[type="checkbox"] {
     border-radius: 8px;
   }
 
+  .tab-buttons {
+    display: grid;
+    width: 100%;
+  }
+
   .tab-button {
+    width: 100%;
+  }
+
+  .currency-control {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .currency-control select {
     width: 100%;
   }
 }
