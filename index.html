@@ -20,6 +20,7 @@
       <nav class="tabs" aria-label="Calculator views">
         <div class="tab-buttons">
           <button class="tab-button active" type="button" data-tab="calculatorView">Calculator</button>
+          <button class="tab-button" type="button" data-tab="advancedView">Advanced risk model</button>
           <button class="tab-button" type="button" data-tab="guidanceView">Input guidance</button>
         </div>
         <label class="currency-control">
@@ -198,6 +199,82 @@
         </section>
       </section>
 
+      <section id="advancedView" class="tab-view">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Advanced Risk View</p>
+              <h2>OT Loss Exposure Simulation</h2>
+            </div>
+            <span class="status-pill">Local browser model</span>
+          </div>
+
+          <div class="advanced-layout">
+            <form id="advancedModel" class="advanced-inputs">
+              <div class="input-grid advanced-grid">
+                <label>
+                  Threat scenarios
+                  <input id="advScenarios" type="number" min="1" step="1" value="4" />
+                </label>
+                <label>
+                  Simulation trials
+                  <input id="advTrials" type="number" min="100" max="10000" step="100" value="1000" />
+                </label>
+                <label>
+                  Minimum events/year
+                  <input id="advMinEvents" type="number" min="0" step="0.1" value="0.5" />
+                </label>
+                <label>
+                  Likely events/year
+                  <input id="advLikelyEvents" type="number" min="0" step="0.1" value="2" />
+                </label>
+                <label>
+                  Maximum events/year
+                  <input id="advMaxEvents" type="number" min="0" step="0.1" value="5" />
+                </label>
+                <label>
+                  Minimum loss/event
+                  <input id="advMinLoss" type="number" min="0" step="10000" value="150000" />
+                </label>
+                <label>
+                  Likely loss/event
+                  <input id="advLikelyLoss" type="number" min="0" step="10000" value="650000" />
+                </label>
+                <label>
+                  Maximum loss/event
+                  <input id="advMaxLoss" type="number" min="0" step="10000" value="1800000" />
+                </label>
+                <label>
+                  Control confidence
+                  <div class="input-suffix">
+                    <input id="advControlConfidence" type="number" min="0" max="100" step="1" value="75" />
+                    <span>%</span>
+                  </div>
+                </label>
+              </div>
+            </form>
+
+            <aside class="advanced-note">
+              <h3>How to read this</h3>
+              <p>This view estimates annual OT loss exposure using low, likely and high event/loss assumptions. It is useful when risk stakeholders want a range-based discussion rather than a single ROI estimate.</p>
+              <p>The reduction is linked to the selected TXOne solution mix and discounted by control confidence. It is not a formal FAIR or actuarial model.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section class="panel results-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Simulation Output</p>
+              <h2>Before / After TXOne Risk Exposure</h2>
+            </div>
+            <strong id="advancedReduction">-</strong>
+          </div>
+
+          <div id="advancedCards" class="advanced-results"></div>
+        </section>
+      </section>
+
       <section id="guidanceView" class="tab-view">
         <section class="panel guidance-panel">
           <div class="panel-head">
@@ -249,6 +326,11 @@
               <h3>Risk Reduction Assumptions</h3>
               <p>Product percentages are editable assumptions, not guarantees. Use lower values until the customer validates coverage, deployment scope and operating model.</p>
               <p>A good starting point is to keep expected combined reduction below 30-40% unless there is strong evidence from incidents, controls mapping or validated risk analysis.</p>
+            </article>
+            <article class="guidance-card">
+              <h3>Advanced Risk Model</h3>
+              <p>Use the advanced tab when the customer wants range-based risk discussion. Minimum, likely and maximum values should come from incident history, plant recovery exercises, insurance analysis or risk workshops.</p>
+              <p><strong>Control confidence</strong> should reflect deployment coverage, asset visibility, policy maturity, monitoring quality and operational adoption.</p>
             </article>
             <article class="guidance-card">
               <h3>Scenario Discipline</h3>
