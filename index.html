@@ -20,8 +20,9 @@
       <nav class="tabs" aria-label="Calculator views">
         <div class="tab-buttons">
           <button class="tab-button active" type="button" data-tab="calculatorView">Calculator</button>
-          <button class="tab-button" type="button" data-tab="advancedView">Advanced risk model</button>
           <button class="tab-button" type="button" data-tab="guidanceView">Input guidance</button>
+          <button class="tab-button" type="button" data-tab="methodView">Calculation method</button>
+          <button class="tab-button" type="button" data-tab="advancedView">Advanced risk model</button>
         </div>
         <label class="currency-control">
           Currency
@@ -272,6 +273,96 @@
           </div>
 
           <div id="advancedCards" class="advanced-results"></div>
+        </section>
+      </section>
+
+      <section id="methodView" class="tab-view">
+        <section class="panel guidance-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Calculation Transparency</p>
+              <h2>How The Numbers Are Calculated</h2>
+            </div>
+            <span class="status-pill">Model logic</span>
+          </div>
+
+          <div class="method-grid">
+            <article class="guidance-card method-card">
+              <h3>Scenario Adjustment</h3>
+              <p>The selected product risk reductions are combined first, then adjusted by scenario.</p>
+              <p><code>Conservative = combined reduction x 0.70</code></p>
+              <p><code>Expected = combined reduction x 1.00</code></p>
+              <p><code>Aggressive = combined reduction x 1.20</code></p>
+              <p>The final scenario reduction is capped at 90% to avoid unrealistic full-risk removal.</p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Product Combination</h3>
+              <p>Product effects are not added directly. The model compounds remaining risk, so selecting several products does not create impossible reductions above 100%.</p>
+              <p><code>Combined reduction = 1 - ((1 - product A) x (1 - product B) x ...)</code></p>
+              <p>Example: 20% and 30% do not become 50%. They become 44%, because the second control reduces the remaining risk.</p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Legacy Multiplier</h3>
+              <p>Legacy OT systems increase downtime and recovery exposure because they are harder to patch, rebuild and operate safely during incidents.</p>
+              <p><code>Legacy multiplier = 1 + (legacy percentage x 0.35)</code></p>
+              <p>At 40% legacy, the multiplier is 1.14. This is intentionally moderate and should be validated with OT and risk stakeholders.</p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Avoided Downtime</h3>
+              <p>The downtime benefit estimates how much expected production loss is avoided by reducing OT cyber incident risk.</p>
+              <p><code>Annual downtime exposure = incidents/year x downtime hours/incident x downtime cost/hour x legacy multiplier</code></p>
+              <p><code>Avoided downtime = annual downtime exposure x scenario reduction</code></p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Reduced Incident Loss</h3>
+              <p>This covers direct incident recovery cost, not downtime. Downtime and recovery should stay separate to avoid double counting.</p>
+              <p><code>Annual recovery exposure = incidents/year x recovery cost/incident x legacy multiplier</code></p>
+              <p><code>Reduced incident loss = annual recovery exposure x scenario reduction</code></p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Operational Efficiency</h3>
+              <p>This estimates time saved for OT/security teams through fewer manual checks, fewer exceptions, faster response and better control visibility.</p>
+              <p><code>Annual FTE cost = FTE count x hourly FTE cost x 2,080</code></p>
+              <p><code>Efficiency rate = (scenario reduction x 0.18) + environment scale</code></p>
+              <p>The efficiency rate is capped at 35%.</p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Annual Benefit</h3>
+              <p>The main benefit is the sum of avoided downtime, reduced recovery loss and operational efficiency saving.</p>
+              <p><code>Annual benefit = avoided downtime + reduced incident loss + operational efficiency saving</code></p>
+              <p>This should be treated as an estimate for business case discussion, not a guarantee.</p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Payback</h3>
+              <p>Payback shows how long it takes for the estimated benefit to equal the investment.</p>
+              <p><code>Payback months = (investment amount / annual benefit) x 12</code></p>
+              <p>If annual benefit is zero, the model shows no payback.</p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Net Value And ROI</h3>
+              <p>Net value and ROI use the selected calculation period. The default is 3 years.</p>
+              <p><code>Period net value = (annual benefit x calculation period) - investment amount</code></p>
+              <p><code>Period cumulative ROI = period net value / investment amount x 100</code></p>
+              <p>This is cumulative ROI over the full period, not annual ROI.</p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Advanced Risk Model</h3>
+              <p>The advanced tab uses low, likely and high ranges for annual event frequency and loss per event. It samples values inside those ranges to estimate a distribution.</p>
+              <p><code>Baseline loss = sampled annual events x sampled loss per event x scenario complexity</code></p>
+              <p><code>Residual loss = baseline loss x (1 - confidence-adjusted reduction)</code></p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Control Confidence</h3>
+              <p>Advanced risk reduction is discounted by confidence to reflect deployment quality, scope and operational maturity.</p>
+              <p><code>Confidence-adjusted reduction = combined product reduction x control confidence</code></p>
+              <p>The advanced model caps this at 85%.</p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Important Boundary</h3>
+              <p>This is not an actuarial, FAIR-certified or insurance-grade risk model. It is a transparent workshop model for early business case estimation.</p>
+              <p>All inputs, assumptions and outputs should be validated with finance, OT, security and risk teams before external use.</p>
+            </article>
+          </div>
         </section>
       </section>
 
