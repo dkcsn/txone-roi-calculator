@@ -220,6 +220,7 @@
             </div>
             <strong id="qualityScore" class="quality-score">-</strong>
           </div>
+          <p class="assumption-note">Validation level applies a benefit confidence factor to the ROI outputs. Estimated assumptions reduce the calculated benefit; finance-validated assumptions keep more of the benefit in the business case.</p>
 
           <div class="quality-grid">
             <label>
@@ -536,6 +537,13 @@
               <p>The main benefit is the sum of avoided downtime, reduced recovery loss and operational efficiency saving.</p>
               <p><code>Annual benefit = avoided downtime + reduced incident loss + operational efficiency saving</code></p>
               <p>This should be treated as an estimate for business case discussion, not a guarantee.</p>
+            </article>
+            <article class="guidance-card method-card">
+              <h3>Assumption Quality Discount</h3>
+              <p>The validation level creates a confidence factor that is applied to the ROI benefit outputs. This keeps estimated assumptions from producing the same ROI as finance-validated inputs.</p>
+              <p><code>Benefit confidence factor = 55% + (assumption quality score x 45%)</code></p>
+              <p><code>Confidence-adjusted benefit = calculated benefit x benefit confidence factor</code></p>
+              <p>All estimated inputs produce a 70% benefit factor. All finance-validated inputs produce a 100% benefit factor.</p>
             </article>
             <article class="guidance-card method-card">
               <h3>Payback</h3>
