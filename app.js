@@ -19,10 +19,25 @@ const inputIds = [
   "periodYears",
 ];
 
+const advancedInputIds = [
+  "advScenarios",
+  "advTrials",
+  "advMinEvents",
+  "advLikelyEvents",
+  "advMaxEvents",
+  "advMinLoss",
+  "advLikelyLoss",
+  "advMaxLoss",
+  "advControlConfidence",
+];
+
 const calculator = document.querySelector("#calculator");
+const advancedModel = document.querySelector("#advancedModel");
 const productsEl = document.querySelector("#products");
 const scenarioCardsEl = document.querySelector("#scenarioCards");
 const scenarioTemplate = document.querySelector("#scenarioTemplate");
+const advancedCardsEl = document.querySelector("#advancedCards");
+const advancedReductionEl = document.querySelector("#advancedReduction");
 const effectiveReductionEl = document.querySelector("#effectiveReduction");
 const selectedCountEl = document.querySelector("#selectedCount");
 const summaryTextEl = document.querySelector("#summaryText");
@@ -51,6 +66,10 @@ function money(value) {
 
 function percent(value) {
   return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value)}%`;
+}
+
+function decimal(value) {
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value);
 }
 
 function months(value) {
@@ -114,6 +133,99 @@ function collectInputs() {
   return Object.fromEntries(inputIds.map((id) => [id, numberValue(id)]));
 }
 
+function collectAdvancedInputs() {
+  const values = Object.fromEntries(advancedInputIds.map((id) => [id, numberValue(id)]));
+  return {
+    scenarios: Math.max(1, values.advScenarios),
+    trials: Math.max(100, Math.min(10000, Math.round(values.advTrials))),
+    minEvents: Math.max(0, values.advMinEvents),
+    likelyEvents: Math.max(0, values.advLikelyEvents),
+    maxEvents: Math.max(0, values.advMaxEvents),
+    minLoss: Math.max(0, values.advMinLoss),
+    likelyLoss: Math.max(0, values.advLikelyLoss),
+    maxLoss: Math.max(0, values.advMaxLoss),
+    controlConfidence: Math.max(0, Math.min(100, values.advControlConfidence)) / 100,
+  };
+}
+
+function normalizeRange(minimum, likely, maximum) {
+  const ordered = [minimum, likely, maximum].sort((a, b) => a - b);
+  return { minimum: ordered[0], likely: ordered[1], maximum: ordered[2] };
+}
+
+function seededRandom(seed) {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+function triangularSample(minimum, likely, maximum, random) {
+  if (maximum <= minimum) return minimum;
+  const mode = Math.max(minimum, Math.min(maximum, likely));
+  const range = maximum - minimum;
+  const modeRatio = (mode - minimum) / range;
+  const draw = random();
+
+  if (draw < modeRatio) {
+    return minimum + Math.sqrt(draw * range * (mode - minimum));
+  }
+
+  return maximum - Math.sqrt((1 - draw) * range * (maximum - mode));
+}
+
+function percentile(values, percentileValue) {
+  if (!values.length) return 0;
+  const index = Math.min(values.length - 1, Math.ceil((percentileValue / 100) * values.length) - 1);
+  return values[index];
+}
+
+function summarizeLosses(losses) {
+  const sorted = [...losses].sort((a, b) => a - b);
+  const mean = sorted.reduce((sum, value) => sum + value, 0) / sorted.length;
+  return {
+    mean,
+    p90: percentile(sorted, 90),
+    p95: percentile(sorted, 95),
+  };
+}
+
+function calculateAdvancedRisk(inputs, products) {
+  const eventRange = normalizeRange(inputs.minEvents, inputs.likelyEvents, inputs.maxEvents);
+  const lossRange = normalizeRange(inputs.minLoss, inputs.likelyLoss, inputs.maxLoss);
+  const txoneReduction = combinedRiskReduction(products);
+  const confidenceAdjustedReduction = Math.min(0.85, txoneReduction * inputs.controlConfidence);
+  const scenarioComplexity = 1 + Math.min(0.25, (inputs.scenarios - 1) * 0.04);
+  const random = seededRandom(42701);
+  const baselineLosses = [];
+  const residualLosses = [];
+  const eventProbabilities = [];
+
+  for (let trial = 0; trial < inputs.trials; trial += 1) {
+    const annualEvents = triangularSample(eventRange.minimum, eventRange.likely, eventRange.maximum, random);
+    const lossPerEvent = triangularSample(lossRange.minimum, lossRange.likely, lossRange.maximum, random);
+    const baselineLoss = annualEvents * lossPerEvent * scenarioComplexity;
+
+    baselineLosses.push(baselineLoss);
+    residualLosses.push(baselineLoss * (1 - confidenceAdjustedReduction));
+    eventProbabilities.push(1 - Math.exp(-annualEvents));
+  }
+
+  const baseline = summarizeLosses(baselineLosses);
+  const residual = summarizeLosses(residualLosses);
+  const probabilityAtLeastOne = eventProbabilities.reduce((sum, value) => sum + value, 0) / eventProbabilities.length;
+
+  return {
+    baseline,
+    residual,
+    confidenceAdjustedReduction,
+    annualRiskReduction: baseline.mean - residual.mean,
+    probabilityAtLeastOne,
+    scenarioComplexity,
+  };
+}
+
 function renderScenarioCards(inputs, products) {
   scenarioCardsEl.replaceChildren(
     ...scenarios.map((scenario) => {
@@ -138,8 +250,61 @@ function renderScenarioCards(inputs, products) {
   );
 }
 
+function advancedMetric(label, value) {
+  const row = document.createElement("div");
+  row.className = "metric";
+
+  const labelEl = document.createElement("span");
+  labelEl.textContent = label;
+
+  const valueEl = document.createElement("strong");
+  valueEl.textContent = value;
+
+  row.append(labelEl, valueEl);
+  return row;
+}
+
+function advancedCard(title, metrics) {
+  const card = document.createElement("article");
+  card.className = "advanced-card";
+
+  const heading = document.createElement("h3");
+  heading.textContent = title;
+  card.append(heading, ...metrics.map(([label, value]) => advancedMetric(label, value)));
+
+  return card;
+}
+
+function renderAdvancedRisk(products) {
+  const inputs = collectAdvancedInputs();
+  const result = calculateAdvancedRisk(inputs, products);
+
+  advancedReductionEl.textContent = `Confidence-adjusted reduction: ${percent(result.confidenceAdjustedReduction * 100)}`;
+  advancedCardsEl.replaceChildren(
+    advancedCard("Baseline exposure", [
+      ["Mean annual loss", money(result.baseline.mean)],
+      ["P90 annual loss", money(result.baseline.p90)],
+      ["P95 annual loss", money(result.baseline.p95)],
+      ["Probability >= 1 event", percent(result.probabilityAtLeastOne * 100)],
+    ]),
+    advancedCard("After TXOne controls", [
+      ["Residual mean loss", money(result.residual.mean)],
+      ["Residual P90 loss", money(result.residual.p90)],
+      ["Residual P95 loss", money(result.residual.p95)],
+      ["Model trials", decimal(inputs.trials)],
+    ]),
+    advancedCard("Risk reduction view", [
+      ["Mean annual risk reduction", money(result.annualRiskReduction)],
+      ["Control confidence", percent(inputs.controlConfidence * 100)],
+      ["Threat scenarios", decimal(inputs.scenarios)],
+      ["Scenario complexity factor", `${decimal(result.scenarioComplexity)}x`],
+    ]),
+  );
+}
+
 function buildSummary(inputs, products) {
   const expected = calculateScenario(inputs, products, scenarios[1]);
+  const advanced = calculateAdvancedRisk(collectAdvancedInputs(), products);
   const productNames = products.length ? products.map((product) => product.name).join(", ") : "No products selected";
 
   return [
@@ -154,6 +319,8 @@ function buildSummary(inputs, products) {
     `Expected payback: ${months(expected.paybackMonths)}`,
     `${inputs.periodYears}-year net value: ${money(expected.periodNetValue)}`,
     `${inputs.periodYears}-year ROI: ${percent(expected.roi)}`,
+    `Advanced model mean annual risk reduction: ${money(advanced.annualRiskReduction)}`,
+    `Advanced model residual P95 annual loss: ${money(advanced.residual.p95)}`,
     "",
     "Disclaimer: This calculator is for business case estimation only. All assumptions must be validated with the customer's finance, OT and risk teams.",
   ].join("\n");
@@ -167,6 +334,7 @@ function render() {
   selectedCountEl.textContent = `${products.length} selected`;
   effectiveReductionEl.textContent = `Expected combined reduction: ${percent(baseReduction * 100)}`;
   renderScenarioCards(inputs, products);
+  renderAdvancedRisk(products);
   summaryTextEl.textContent = buildSummary(inputs, products);
 }
 
@@ -228,6 +396,8 @@ async function copySummary() {
 
 calculator.addEventListener("input", render);
 calculator.addEventListener("submit", (event) => event.preventDefault());
+advancedModel.addEventListener("input", render);
+advancedModel.addEventListener("submit", (event) => event.preventDefault());
 productsEl.addEventListener("input", render);
 copySummaryButton.addEventListener("click", copySummary);
 tabButtons.forEach((button) => {
