@@ -241,7 +241,7 @@ function renderScenarioCards(inputs, products) {
       card.querySelector('[data-key="operationalEfficiency"]').textContent = money(result.operationalEfficiency);
       card.querySelector('[data-key="paybackMonths"]').textContent = months(result.paybackMonths);
       card.querySelector('[data-label="netValueLabel"]').textContent = `${inputs.periodYears}-year net value`;
-      card.querySelector('[data-label="roiLabel"]').textContent = `${inputs.periodYears}-year ROI`;
+      card.querySelector('[data-label="roiLabel"]').textContent = `${inputs.periodYears}-year cumulative ROI`;
       card.querySelector('[data-key="netValue"]').textContent = money(result.periodNetValue);
       card.querySelector('[data-key="roi"]').textContent = percent(result.roi);
 
@@ -318,7 +318,7 @@ function buildSummary(inputs, products) {
     `Expected operational efficiency saving: ${money(expected.operationalEfficiency)}`,
     `Expected payback: ${months(expected.paybackMonths)}`,
     `${inputs.periodYears}-year net value: ${money(expected.periodNetValue)}`,
-    `${inputs.periodYears}-year ROI: ${percent(expected.roi)}`,
+    `${inputs.periodYears}-year cumulative ROI: ${percent(expected.roi)}`,
     `Advanced model mean annual risk reduction: ${money(advanced.annualRiskReduction)}`,
     `Advanced model residual P95 annual loss: ${money(advanced.residual.p95)}`,
     "",
@@ -399,6 +399,7 @@ calculator.addEventListener("submit", (event) => event.preventDefault());
 advancedModel.addEventListener("input", render);
 advancedModel.addEventListener("submit", (event) => event.preventDefault());
 productsEl.addEventListener("input", render);
+currencySelect.addEventListener("change", render);
 copySummaryButton.addEventListener("click", copySummary);
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => selectTab(button.dataset.tab));
