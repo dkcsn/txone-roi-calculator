@@ -218,7 +218,7 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <p class="eyebrow">Advanced Risk View</p>
+              <p class="eyebrow">Risk Simulation</p>
               <h2>OT Loss Exposure Simulation</h2>
             </div>
             <span class="status-pill">Local browser model</span>
@@ -418,8 +418,8 @@
               <p>This is cumulative ROI over the full period, not annual ROI.</p>
             </article>
             <article class="guidance-card method-card">
-              <h3>Advanced Risk Model</h3>
-              <p>The advanced tab uses low, likely and high ranges for annual event frequency and loss per event. It samples values inside those ranges to estimate a distribution.</p>
+              <h3>Risk Simulation</h3>
+              <p>The risk simulation tab uses low, likely and high ranges for annual event frequency and loss per event. It samples values inside those ranges to estimate a distribution.</p>
               <p><code>Baseline loss = sampled annual events x sampled loss per event x scenario complexity</code></p>
               <p><code>Residual loss = baseline loss x (1 - confidence-adjusted reduction)</code></p>
             </article>
@@ -427,7 +427,7 @@
               <h3>Control Confidence</h3>
               <p>Advanced risk reduction is discounted by confidence to reflect deployment quality, scope and operational maturity.</p>
               <p><code>Confidence-adjusted reduction = combined product reduction x control confidence</code></p>
-              <p>The advanced model caps this at 85%.</p>
+              <p>The risk simulation caps this at 85%.</p>
             </article>
             <article class="guidance-card method-card">
               <h3>Important Boundary</h3>
@@ -491,8 +491,8 @@
               <p>A good starting point is to keep expected combined reduction below 30-40% unless there is strong evidence from incidents, controls mapping or validated risk analysis.</p>
             </article>
             <article class="guidance-card">
-              <h3>Advanced Risk Model</h3>
-              <p>Use the advanced tab when the customer wants range-based risk discussion. Minimum, likely and maximum values should come from incident history, plant recovery exercises, insurance analysis or risk workshops.</p>
+              <h3>Risk Simulation</h3>
+              <p>Use the risk simulation tab when the customer wants range-based risk discussion. Minimum, likely and maximum values should come from incident history, plant recovery exercises, insurance analysis or risk workshops.</p>
               <p><strong>Control confidence</strong> should reflect deployment coverage, asset visibility, policy maturity, monitoring quality and operational adoption.</p>
             </article>
             <article class="guidance-card">
