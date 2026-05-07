@@ -529,6 +529,14 @@ input[type="checkbox"] {
   font-weight: 800;
 }
 
+.assumption-note {
+  margin: -4px 0 16px;
+  max-width: 920px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .quality-grid,
 .sensitivity-grid,
 .summary-grid {
