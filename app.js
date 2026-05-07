@@ -30,16 +30,21 @@ const copySummaryButton = document.querySelector("#copySummary");
 const copyStatusEl = document.querySelector("#copyStatus");
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabViews = document.querySelectorAll(".tab-view");
+const currencySelect = document.querySelector("#currency");
 
 function numberValue(id) {
   const value = Number(document.querySelector(`#${id}`).value);
   return Number.isFinite(value) ? value : 0;
 }
 
+function selectedCurrency() {
+  return currencySelect.value || "USD";
+}
+
 function money(value) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: selectedCurrency(),
     maximumFractionDigits: 0,
   }).format(value);
 }
@@ -140,6 +145,7 @@ function buildSummary(inputs, products) {
   return [
     "TXOne OT Cybersecurity ROI Executive Summary",
     `Solution mix: ${productNames}`,
+    `Currency: ${selectedCurrency()}`,
     `Environment: ${inputs.sites} sites, ${inputs.productionLines} production lines, ${inputs.endpoints} OT endpoints, ${inputs.legacyPercent}% legacy OT systems`,
     `Expected annual benefit: ${money(expected.annualBenefit)}`,
     `Expected avoided downtime: ${money(expected.avoidedDowntime)}`,
