@@ -18,8 +18,21 @@
       </header>
 
       <nav class="tabs" aria-label="Calculator views">
-        <button class="tab-button active" type="button" data-tab="calculatorView">Calculator</button>
-        <button class="tab-button" type="button" data-tab="guidanceView">Input guidance</button>
+        <div class="tab-buttons">
+          <button class="tab-button active" type="button" data-tab="calculatorView">Calculator</button>
+          <button class="tab-button" type="button" data-tab="guidanceView">Input guidance</button>
+        </div>
+        <label class="currency-control">
+          Currency
+          <select id="currency">
+            <option value="USD" selected>USD</option>
+            <option value="EUR">EUR</option>
+            <option value="DKK">DKK</option>
+            <option value="GBP">GBP</option>
+            <option value="SEK">SEK</option>
+            <option value="NOK">NOK</option>
+          </select>
+        </label>
       </nav>
 
       <section id="calculatorView" class="tab-view active">
@@ -87,17 +100,6 @@
                   <input id="periodYears" type="number" min="1" max="10" step="1" value="3" />
                   <span>years</span>
                 </div>
-              </label>
-              <label>
-                Currency
-                <select id="currency">
-                  <option value="USD" selected>USD - US dollar</option>
-                  <option value="EUR">EUR - Euro</option>
-                  <option value="DKK">DKK - Danish krone</option>
-                  <option value="GBP">GBP - British pound</option>
-                  <option value="SEK">SEK - Swedish krona</option>
-                  <option value="NOK">NOK - Norwegian krone</option>
-                </select>
               </label>
             </div>
 
