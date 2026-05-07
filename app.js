@@ -352,7 +352,7 @@ async function copySummary() {
   if (navigator.clipboard && window.isSecureContext) {
     try {
       await navigator.clipboard.writeText(summary);
-      copyStatusEl.textContent = "Copied";
+      copyStatusEl.textContent = "Copied to clipboard";
       setTimeout(() => {
         copyStatusEl.textContent = "Ready";
       }, 1800);
@@ -374,14 +374,14 @@ async function copySummary() {
 
   try {
     const copied = document.execCommand("copy");
-    copyStatusEl.textContent = copied ? "Copied" : "Copy blocked";
+    copyStatusEl.textContent = copied ? "Copied to clipboard" : "Clipboard copy blocked";
   } catch {
-    copyStatusEl.textContent = "Copy blocked";
+    copyStatusEl.textContent = "Clipboard copy blocked";
   } finally {
     document.body.removeChild(textArea);
   }
 
-  if (copyStatusEl.textContent === "Copy blocked") {
+  if (copyStatusEl.textContent === "Clipboard copy blocked") {
     const selection = window.getSelection();
     const range = document.createRange();
     range.selectNodeContents(summaryTextEl);
