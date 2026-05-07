@@ -194,8 +194,8 @@ function summarizeLosses(losses) {
 function calculateAdvancedRisk(inputs, products) {
   const eventRange = normalizeRange(inputs.minEvents, inputs.likelyEvents, inputs.maxEvents);
   const lossRange = normalizeRange(inputs.minLoss, inputs.likelyLoss, inputs.maxLoss);
-  const txoneReduction = combinedRiskReduction(products);
-  const confidenceAdjustedReduction = Math.min(0.85, txoneReduction * inputs.controlConfidence);
+  const selectedControlReduction = combinedRiskReduction(products);
+  const confidenceAdjustedReduction = Math.min(0.85, selectedControlReduction * inputs.controlConfidence);
   const scenarioComplexity = 1 + Math.min(0.25, (inputs.scenarios - 1) * 0.04);
   const random = seededRandom(42701);
   const baselineLosses = [];
@@ -287,7 +287,7 @@ function renderAdvancedRisk(products) {
       ["P95 annual loss", money(result.baseline.p95)],
       ["Probability >= 1 event", percent(result.probabilityAtLeastOne * 100)],
     ]),
-    advancedCard("After TXOne controls", [
+    advancedCard("After selected controls", [
       ["Residual mean loss", money(result.residual.mean)],
       ["Residual P90 loss", money(result.residual.p90)],
       ["Residual P95 loss", money(result.residual.p95)],
@@ -308,7 +308,7 @@ function buildSummary(inputs, products) {
   const productNames = products.length ? products.map((product) => product.name).join(", ") : "No products selected";
 
   return [
-    "TXOne OT Cybersecurity ROI Executive Summary",
+    "OT Cybersecurity ROI Executive Summary",
     `Solution mix: ${productNames}`,
     `Currency: ${selectedCurrency()}`,
     `Environment: ${inputs.sites} sites, ${inputs.productionLines} production lines, ${inputs.endpoints} OT endpoints, ${inputs.legacyPercent}% legacy OT systems`,
