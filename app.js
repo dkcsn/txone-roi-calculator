@@ -28,6 +28,8 @@ const selectedCountEl = document.querySelector("#selectedCount");
 const summaryTextEl = document.querySelector("#summaryText");
 const copySummaryButton = document.querySelector("#copySummary");
 const copyStatusEl = document.querySelector("#copyStatus");
+const tabButtons = document.querySelectorAll(".tab-button");
+const tabViews = document.querySelectorAll(".tab-view");
 
 function numberValue(id) {
   const value = Number(document.querySelector(`#${id}`).value);
@@ -162,6 +164,15 @@ function render() {
   summaryTextEl.textContent = buildSummary(inputs, products);
 }
 
+function selectTab(tabId) {
+  tabButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.tab === tabId);
+  });
+  tabViews.forEach((view) => {
+    view.classList.toggle("active", view.id === tabId);
+  });
+}
+
 async function copySummary() {
   const summary = summaryTextEl.textContent;
   if (navigator.clipboard && window.isSecureContext) {
@@ -213,5 +224,8 @@ calculator.addEventListener("input", render);
 calculator.addEventListener("submit", (event) => event.preventDefault());
 productsEl.addEventListener("input", render);
 copySummaryButton.addEventListener("click", copySummary);
+tabButtons.forEach((button) => {
+  button.addEventListener("click", () => selectTab(button.dataset.tab));
+});
 
 render();
