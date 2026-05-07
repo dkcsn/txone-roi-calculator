@@ -46,6 +46,13 @@
               <small>Exposure range</small>
             </span>
           </button>
+          <button class="tab-button" type="button" data-tab="reportView">
+            <span class="tab-step">5</span>
+            <span>
+              <strong>Workshop report</strong>
+              <small>Print export</small>
+            </span>
+          </button>
         </div>
         <label class="currency-control">
           Currency
@@ -157,7 +164,7 @@
                 <label>
                   Assumed risk reduction
                   <div class="input-suffix compact">
-                    <input class="risk-input" type="number" min="0" max="100" step="1" value="22" data-product="Stellar" />
+                    <input class="risk-input" type="number" min="0" max="100" step="1" value="12" data-product="Stellar" />
                     <span>%</span>
                   </div>
                 </label>
@@ -170,7 +177,7 @@
                 <label>
                   Assumed risk reduction
                   <div class="input-suffix compact">
-                    <input class="risk-input" type="number" min="0" max="100" step="1" value="30" data-product="Edge" />
+                    <input class="risk-input" type="number" min="0" max="100" step="1" value="18" data-product="Edge" />
                     <span>%</span>
                   </div>
                 </label>
@@ -183,7 +190,7 @@
                 <label>
                   Assumed risk reduction
                   <div class="input-suffix compact">
-                    <input class="risk-input" type="number" min="0" max="100" step="1" value="18" data-product="Element" />
+                    <input class="risk-input" type="number" min="0" max="100" step="1" value="10" data-product="Element" />
                     <span>%</span>
                   </div>
                 </label>
@@ -196,13 +203,74 @@
                 <label>
                   Assumed risk reduction
                   <div class="input-suffix compact">
-                    <input class="risk-input" type="number" min="0" max="100" step="1" value="20" data-product="SenninOne" />
+                    <input class="risk-input" type="number" min="0" max="100" step="1" value="12" data-product="SenninOne" />
                     <span>%</span>
                   </div>
                 </label>
               </article>
             </div>
           </section>
+        </section>
+
+        <section class="panel assumption-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Assumption Quality</p>
+              <h2>Validation Level</h2>
+            </div>
+            <strong id="qualityScore" class="quality-score">-</strong>
+          </div>
+
+          <div class="quality-grid">
+            <label>
+              Environment scope
+              <select class="quality-input" id="qualityEnvironment">
+                <option value="estimated" selected>Estimated</option>
+                <option value="customer">Customer validated</option>
+                <option value="finance">Finance validated</option>
+              </select>
+            </label>
+            <label>
+              Downtime and recovery costs
+              <select class="quality-input" id="qualityCost">
+                <option value="estimated" selected>Estimated</option>
+                <option value="customer">Customer validated</option>
+                <option value="finance">Finance validated</option>
+              </select>
+            </label>
+            <label>
+              Incident history
+              <select class="quality-input" id="qualityIncident">
+                <option value="estimated" selected>Estimated</option>
+                <option value="customer">Customer validated</option>
+                <option value="finance">Finance validated</option>
+              </select>
+            </label>
+            <label>
+              Risk reduction assumptions
+              <select class="quality-input" id="qualityRiskReduction">
+                <option value="estimated" selected>Estimated</option>
+                <option value="customer">Customer validated</option>
+                <option value="finance">Finance validated</option>
+              </select>
+            </label>
+            <label>
+              Investment amount
+              <select class="quality-input" id="qualityInvestment">
+                <option value="estimated" selected>Estimated</option>
+                <option value="customer">Customer validated</option>
+                <option value="finance">Finance validated</option>
+              </select>
+            </label>
+            <label>
+              Risk simulation inputs
+              <select class="quality-input" id="qualitySimulation">
+                <option value="estimated" selected>Estimated</option>
+                <option value="customer">Customer validated</option>
+                <option value="finance">Finance validated</option>
+              </select>
+            </label>
+          </div>
         </section>
 
         <section class="panel results-panel">
@@ -217,6 +285,18 @@
           <div id="scenarioCards" class="scenario-grid"></div>
         </section>
 
+        <section class="panel sensitivity-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Sensitivity Analysis</p>
+              <h2>Inputs That Move The Business Case Most</h2>
+            </div>
+            <span class="status-pill">Expected case</span>
+          </div>
+
+          <div id="sensitivityCards" class="sensitivity-grid"></div>
+        </section>
+
         <section class="panel executive-panel">
           <div class="panel-head">
             <div>
@@ -224,11 +304,21 @@
               <h2>Executive Summary</h2>
             </div>
             <div class="panel-actions">
-              <button id="copySummary" class="primary" type="button">Copy executive summary to clipboard</button>
+              <button id="copySummary" class="primary" type="button">Copy ROI summary to clipboard</button>
+              <button id="copyRiskSummary" class="secondary" type="button">Copy risk summary to clipboard</button>
               <span id="copyStatus" class="copy-status">Ready</span>
             </div>
           </div>
-          <pre id="summaryText"></pre>
+          <div class="summary-grid">
+            <article class="summary-card">
+              <h3>ROI business case summary</h3>
+              <pre id="summaryText"></pre>
+            </article>
+            <article class="summary-card">
+              <h3>Risk simulation summary</h3>
+              <pre id="riskSummaryText"></pre>
+            </article>
+          </div>
         </section>
       </section>
 
@@ -286,7 +376,7 @@
                 <label>
                   Control confidence
                   <div class="input-suffix">
-                    <input id="advControlConfidence" type="number" min="0" max="100" step="1" value="75" />
+                    <input id="advControlConfidence" type="number" min="0" max="100" step="1" value="60" />
                     <span>%</span>
                   </div>
                 </label>
@@ -349,7 +439,7 @@
             <article class="guidance-card">
               <h3>Control Confidence</h3>
               <p>This discounts the selected solution mix to reflect real-world deployment quality, coverage, monitoring maturity and operating discipline.</p>
-              <p><strong>Example:</strong> use 50-60% for early deployment assumptions, 70-80% for validated coverage, and avoid 90%+ unless evidence is strong.</p>
+              <p><strong>Example:</strong> use 50-60% for early deployment assumptions, 70-80% for validated coverage, and avoid 85%+ unless evidence is strong.</p>
             </article>
             <article class="guidance-card">
               <h3>Shared Naming</h3>
@@ -372,6 +462,25 @@
         </section>
       </section>
 
+      <section id="reportView" class="tab-view">
+        <section class="view-intro">
+          <p class="eyebrow">Workshop Report</p>
+          <h2>Print-Ready Business Case Export</h2>
+          <p>Use this view after the workshop to print or save a concise report with inputs, assumption quality, ROI outputs, risk simulation and required disclaimer.</p>
+        </section>
+
+        <section class="panel report-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Report Output</p>
+              <h2>Workshop Report</h2>
+            </div>
+            <button id="printReport" class="primary" type="button">Print or save as PDF</button>
+          </div>
+          <pre id="reportText"></pre>
+        </section>
+      </section>
+
       <section id="methodView" class="tab-view">
         <section class="panel guidance-panel">
           <div class="panel-head">
@@ -389,7 +498,7 @@
               <p><code>Conservative = combined reduction x 0.70</code></p>
               <p><code>Expected = combined reduction x 1.00</code></p>
               <p><code>Aggressive = combined reduction x 1.20</code></p>
-              <p>The final scenario reduction is capped at 90% to avoid unrealistic full-risk removal.</p>
+              <p>The final scenario reduction is capped at 75% to avoid unrealistic full-risk removal.</p>
             </article>
             <article class="guidance-card method-card">
               <h3>Product Combination</h3>
@@ -419,8 +528,8 @@
               <h3>Operational Efficiency</h3>
               <p>This estimates time saved for OT/security teams through fewer manual checks, fewer exceptions, faster response and better control visibility.</p>
               <p><code>Annual FTE cost = FTE count x hourly FTE cost x 2,080</code></p>
-              <p><code>Efficiency rate = (scenario reduction x 0.18) + environment scale</code></p>
-              <p>The efficiency rate is capped at 35%.</p>
+              <p><code>Efficiency rate = (scenario reduction x 0.10) + environment scale</code></p>
+              <p>The efficiency rate is capped at 22%.</p>
             </article>
             <article class="guidance-card method-card">
               <h3>Annual Benefit</h3>
@@ -451,7 +560,7 @@
               <h3>Control Confidence</h3>
               <p>Advanced risk reduction is discounted by confidence to reflect deployment quality, scope and operational maturity.</p>
               <p><code>Confidence-adjusted reduction = combined product reduction x control confidence</code></p>
-              <p>The risk simulation caps this at 85%.</p>
+              <p>The risk simulation caps this at 70%.</p>
             </article>
             <article class="guidance-card method-card">
               <h3>Important Boundary</h3>
