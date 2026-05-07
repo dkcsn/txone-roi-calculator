@@ -72,39 +72,109 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 12px;
   margin-bottom: 18px;
-  padding: 5px;
+  padding: 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(18, 7, 36, 0.74);
 }
 
 .tab-buttons {
-  display: inline-flex;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
 }
 
 .tab-button {
-  min-height: 38px;
-  border: 0;
-  border-radius: 999px;
-  padding: 0 16px;
-  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(36, 21, 64, 0.46);
   color: var(--muted);
   cursor: pointer;
-  font-weight: 700;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .tab-button.active {
-  background: var(--accent);
+  border-color: rgba(215, 25, 32, 0.72);
+  background: linear-gradient(180deg, rgba(215, 25, 32, 0.24), rgba(36, 21, 64, 0.72));
   color: #fff;
+}
+
+.tab-button:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+.tab-button strong,
+.tab-button small {
+  display: block;
+}
+
+.tab-button strong {
+  overflow: hidden;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-button small {
+  margin-top: 3px;
+  color: rgba(237, 237, 239, 0.68);
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.15;
+}
+
+.tab-step {
+  display: inline-grid;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(13, 5, 27, 0.72);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.tab-button.active .tab-step {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.tab-button-risk {
+  border-color: rgba(43, 140, 205, 0.38);
+}
+
+.tab-button-risk.active {
+  border-color: rgba(43, 140, 205, 0.8);
+  background: linear-gradient(180deg, rgba(43, 140, 205, 0.23), rgba(36, 21, 64, 0.72));
+}
+
+.tab-button-risk.active .tab-step {
+  border-color: var(--good);
+  background: var(--good);
 }
 
 .currency-control {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 0 0 auto;
   color: var(--muted);
   font-size: 13px;
   font-weight: 750;
@@ -617,6 +687,15 @@ input[type="checkbox"] {
     flex-direction: column;
   }
 
+  .tabs {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tab-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .workspace,
   .scenario-grid,
   .advanced-layout,
@@ -664,6 +743,7 @@ input[type="checkbox"] {
 
   .tab-buttons {
     display: grid;
+    grid-template-columns: 1fr;
     width: 100%;
   }
 
