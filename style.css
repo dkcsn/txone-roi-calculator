@@ -29,7 +29,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -189,7 +190,21 @@ input[type="number"] {
   font-weight: 400;
 }
 
-input[type="number"]:focus {
+select {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 9px 10px;
+  background: #eee;
+  color: var(--bg-deep);
+  outline: none;
+  font-weight: 400;
+}
+
+input[type="number"]:focus,
+select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(215, 25, 32, 0.18);
 }
