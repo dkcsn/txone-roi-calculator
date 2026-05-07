@@ -184,6 +184,34 @@ h3 {
   margin-bottom: 16px;
 }
 
+.panel-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.view-intro {
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 5px solid var(--accent);
+  border-radius: 8px;
+  background: rgba(18, 7, 36, 0.74);
+}
+
+.view-intro h2 {
+  margin-bottom: 8px;
+}
+
+.view-intro p:last-child {
+  max-width: 900px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .input-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -451,6 +479,43 @@ input[type="checkbox"] {
   color: #fff;
 }
 
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.comparison-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(215, 25, 32, 0.34);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(215, 25, 32, 0.13), rgba(36, 21, 64, 0.62));
+}
+
+.comparison-card h3 {
+  margin-bottom: 12px;
+}
+
+.comparison-card p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.comparison-card p + p {
+  margin-top: 10px;
+}
+
+.comparison-card strong {
+  color: #fff;
+}
+
+.advanced-help-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .method-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -556,6 +621,7 @@ input[type="checkbox"] {
   .scenario-grid,
   .advanced-layout,
   .advanced-results,
+  .comparison-grid,
   .method-grid,
   .guidance-grid {
     grid-template-columns: 1fr;
