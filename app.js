@@ -31,6 +31,15 @@ const advancedInputIds = [
   "advControlConfidence",
 ];
 
+const qualityInputIds = [
+  "qualityEnvironment",
+  "qualityCost",
+  "qualityIncident",
+  "qualityRiskReduction",
+  "qualityInvestment",
+  "qualitySimulation",
+];
+
 const calculator = document.querySelector("#calculator");
 const advancedModel = document.querySelector("#advancedModel");
 const productsEl = document.querySelector("#products");
@@ -41,11 +50,30 @@ const advancedReductionEl = document.querySelector("#advancedReduction");
 const effectiveReductionEl = document.querySelector("#effectiveReduction");
 const selectedCountEl = document.querySelector("#selectedCount");
 const summaryTextEl = document.querySelector("#summaryText");
+const riskSummaryTextEl = document.querySelector("#riskSummaryText");
+const reportTextEl = document.querySelector("#reportText");
+const sensitivityCardsEl = document.querySelector("#sensitivityCards");
+const qualityScoreEl = document.querySelector("#qualityScore");
 const copySummaryButton = document.querySelector("#copySummary");
+const copyRiskSummaryButton = document.querySelector("#copyRiskSummary");
+const printReportButton = document.querySelector("#printReport");
 const copyStatusEl = document.querySelector("#copyStatus");
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabViews = document.querySelectorAll(".tab-view");
 const currencySelect = document.querySelector("#currency");
+const qualityInputs = document.querySelectorAll(".quality-input");
+
+const qualityWeights = {
+  estimated: 1,
+  customer: 2,
+  finance: 3,
+};
+
+const qualityLabels = {
+  estimated: "Estimated",
+  customer: "Customer validated",
+  finance: "Finance validated",
+};
 
 function numberValue(id) {
   const value = Number(document.querySelector(`#${id}`).value);
@@ -96,7 +124,7 @@ function combinedRiskReduction(products) {
 
 function calculateScenario(inputs, products, scenario) {
   const selectedReduction = combinedRiskReduction(products);
-  const adjustedReduction = Math.min(0.9, selectedReduction * scenario.factor);
+  const adjustedReduction = Math.min(0.75, selectedReduction * scenario.factor);
   const legacyMultiplier = 1 + Math.max(0, Math.min(100, inputs.legacyPercent)) / 100 * 0.35;
   const annualDowntimeExposure = inputs.incidents * inputs.downtimeHours * inputs.downtimeCost * legacyMultiplier;
   const annualRecoveryExposure = inputs.incidents * inputs.recoveryCost * legacyMultiplier;
@@ -105,7 +133,7 @@ function calculateScenario(inputs, products, scenario) {
 
   const annualFteCost = inputs.fteCount * inputs.fteHourlyCost * 2080;
   const environmentScale = Math.min(0.08, (inputs.sites * 0.004) + (inputs.productionLines * 0.0015) + (inputs.endpoints / 100000));
-  const efficiencyRate = Math.min(0.35, (adjustedReduction * 0.18) + environmentScale);
+  const efficiencyRate = Math.min(0.22, (adjustedReduction * 0.1) + environmentScale);
   const operationalEfficiency = annualFteCost * efficiencyRate;
 
   const annualBenefit = avoidedDowntime + reducedIncidentLoss + operationalEfficiency;
@@ -146,6 +174,38 @@ function collectAdvancedInputs() {
     maxLoss: Math.max(0, values.advMaxLoss),
     controlConfidence: Math.max(0, Math.min(100, values.advControlConfidence)) / 100,
   };
+}
+
+function collectQualityInputs() {
+  return Object.fromEntries(
+    qualityInputIds.map((id) => {
+      const element = document.querySelector(`#${id}`);
+      return [id, element ? element.value : "estimated"];
+    }),
+  );
+}
+
+function calculateQualityScore(quality) {
+  const values = Object.values(quality);
+  const total = values.reduce((sum, value) => sum + (qualityWeights[value] || 1), 0);
+  const percentValue = Math.round((total / (values.length * 3)) * 100);
+
+  let rating = "Low";
+  if (percentValue >= 78) rating = "High";
+  else if (percentValue >= 56) rating = "Medium";
+
+  return { percent: percentValue, rating };
+}
+
+function qualityLine(quality) {
+  return [
+    `Environment: ${qualityLabels[quality.qualityEnvironment]}`,
+    `Costs: ${qualityLabels[quality.qualityCost]}`,
+    `Incidents: ${qualityLabels[quality.qualityIncident]}`,
+    `Risk reduction: ${qualityLabels[quality.qualityRiskReduction]}`,
+    `Investment: ${qualityLabels[quality.qualityInvestment]}`,
+    `Simulation: ${qualityLabels[quality.qualitySimulation]}`,
+  ].join(" | ");
 }
 
 function normalizeRange(minimum, likely, maximum) {
@@ -195,7 +255,7 @@ function calculateAdvancedRisk(inputs, products) {
   const eventRange = normalizeRange(inputs.minEvents, inputs.likelyEvents, inputs.maxEvents);
   const lossRange = normalizeRange(inputs.minLoss, inputs.likelyLoss, inputs.maxLoss);
   const selectedControlReduction = combinedRiskReduction(products);
-  const confidenceAdjustedReduction = Math.min(0.85, selectedControlReduction * inputs.controlConfidence);
+  const confidenceAdjustedReduction = Math.min(0.7, selectedControlReduction * inputs.controlConfidence);
   const scenarioComplexity = 1 + Math.min(0.25, (inputs.scenarios - 1) * 0.04);
   const random = seededRandom(42701);
   const baselineLosses = [];
@@ -224,6 +284,43 @@ function calculateAdvancedRisk(inputs, products) {
     probabilityAtLeastOne,
     scenarioComplexity,
   };
+}
+
+function expectedScenario(inputs, products) {
+  return calculateScenario(inputs, products, scenarios[1]);
+}
+
+function sensitivityRows(inputs, products) {
+  const base = expectedScenario(inputs, products);
+  const candidateInputs = [
+    ["downtimeCost", "Downtime cost per hour"],
+    ["incidents", "Incidents per year"],
+    ["downtimeHours", "Downtime hours per incident"],
+    ["recoveryCost", "Incident recovery cost"],
+    ["fteCount", "OT/security FTE count"],
+    ["fteHourlyCost", "Hourly FTE cost"],
+    ["investment", "Investment amount"],
+    ["legacyPercent", "Legacy percentage"],
+  ];
+
+  return candidateInputs
+    .map(([key, label]) => {
+      const lowInputs = { ...inputs, [key]: Math.max(0, inputs[key] * 0.8) };
+      const highInputs = { ...inputs, [key]: Math.max(0, inputs[key] * 1.2) };
+      const low = expectedScenario(lowInputs, products);
+      const high = expectedScenario(highInputs, products);
+      const annualDelta = Math.max(Math.abs(low.annualBenefit - base.annualBenefit), Math.abs(high.annualBenefit - base.annualBenefit));
+      const roiDelta = Math.max(Math.abs(low.roi - base.roi), Math.abs(high.roi - base.roi));
+
+      return {
+        label,
+        annualDelta,
+        roiDelta,
+        displayDelta: key === "investment" ? `${decimal(roiDelta)} ROI points` : money(annualDelta),
+      };
+    })
+    .sort((a, b) => (b.annualDelta + b.roiDelta * 1000) - (a.annualDelta + a.roiDelta * 1000))
+    .slice(0, 5);
 }
 
 function renderScenarioCards(inputs, products) {
@@ -302,15 +399,44 @@ function renderAdvancedRisk(products) {
   );
 }
 
-function buildSummary(inputs, products) {
-  const expected = calculateScenario(inputs, products, scenarios[1]);
+function renderSensitivity(inputs, products) {
+  const rows = sensitivityRows(inputs, products);
+  sensitivityCardsEl.replaceChildren(
+    ...rows.map((row, index) => {
+      const card = document.createElement("article");
+      card.className = "sensitivity-card";
+
+      const rank = document.createElement("span");
+      rank.className = "sensitivity-rank";
+      rank.textContent = `#${index + 1}`;
+
+      const heading = document.createElement("h3");
+      heading.textContent = row.label;
+
+      const value = document.createElement("strong");
+      value.textContent = row.displayDelta;
+
+      const caption = document.createElement("p");
+      caption.textContent = "Approximate movement when this input changes by plus or minus 20%.";
+
+      card.append(rank, heading, value, caption);
+      return card;
+    }),
+  );
+}
+
+function buildRoiSummary(inputs, products, quality) {
+  const expected = expectedScenario(inputs, products);
+  const qualityScore = calculateQualityScore(quality);
   const advanced = calculateAdvancedRisk(collectAdvancedInputs(), products);
   const productNames = products.length ? products.map((product) => product.name).join(", ") : "No products selected";
 
   return [
-    "OT Cybersecurity ROI Executive Summary",
+    "OT Cybersecurity ROI Business Case Summary",
     `Solution mix: ${productNames}`,
     `Currency: ${selectedCurrency()}`,
+    `Assumption quality: ${qualityScore.rating} confidence (${qualityScore.percent}%)`,
+    qualityLine(quality),
     `Environment: ${inputs.sites} sites, ${inputs.productionLines} production lines, ${inputs.endpoints} OT endpoints, ${inputs.legacyPercent}% legacy OT systems`,
     `Expected annual benefit: ${money(expected.annualBenefit)}`,
     `Expected avoided downtime: ${money(expected.avoidedDowntime)}`,
@@ -319,8 +445,77 @@ function buildSummary(inputs, products) {
     `Expected payback: ${months(expected.paybackMonths)}`,
     `${inputs.periodYears}-year net value: ${money(expected.periodNetValue)}`,
     `${inputs.periodYears}-year cumulative ROI: ${percent(expected.roi)}`,
-    `Risk simulation mean annual risk reduction: ${money(advanced.annualRiskReduction)}`,
-    `Risk simulation residual P95 annual loss: ${money(advanced.residual.p95)}`,
+    `Risk simulation reference: mean annual risk reduction ${money(advanced.annualRiskReduction)}, residual P95 annual loss ${money(advanced.residual.p95)}`,
+    "",
+    "Disclaimer: This calculator is for business case estimation only. All assumptions must be validated with the customer's finance, OT and risk teams.",
+  ].join("\n");
+}
+
+function buildRiskSummary(products, quality) {
+  const advancedInputs = collectAdvancedInputs();
+  const advanced = calculateAdvancedRisk(advancedInputs, products);
+  const qualityScore = calculateQualityScore(quality);
+  const productNames = products.length ? products.map((product) => product.name).join(", ") : "No products selected";
+
+  return [
+    "OT Cybersecurity Risk Simulation Summary",
+    `Solution mix: ${productNames}`,
+    `Currency: ${selectedCurrency()}`,
+    `Assumption quality: ${qualityScore.rating} confidence (${qualityScore.percent}%)`,
+    `Risk simulation validation: ${qualityLabels[quality.qualitySimulation]}`,
+    `Threat scenarios: ${decimal(advancedInputs.scenarios)}`,
+    `Simulation trials: ${decimal(advancedInputs.trials)}`,
+    `Control confidence: ${percent(advancedInputs.controlConfidence * 100)}`,
+    `Confidence-adjusted reduction: ${percent(advanced.confidenceAdjustedReduction * 100)}`,
+    `Mean baseline annual loss: ${money(advanced.baseline.mean)}`,
+    `Mean residual annual loss: ${money(advanced.residual.mean)}`,
+    `P90 residual annual loss: ${money(advanced.residual.p90)}`,
+    `P95 residual annual loss: ${money(advanced.residual.p95)}`,
+    `Mean annual risk reduction: ${money(advanced.annualRiskReduction)}`,
+    `Probability of at least one annual event: ${percent(advanced.probabilityAtLeastOne * 100)}`,
+    "",
+    "Disclaimer: This calculator is for business case estimation only. All assumptions must be validated with the customer's finance, OT and risk teams.",
+  ].join("\n");
+}
+
+function buildReport(inputs, products, quality) {
+  const expected = expectedScenario(inputs, products);
+  const advanced = calculateAdvancedRisk(collectAdvancedInputs(), products);
+  const qualityScore = calculateQualityScore(quality);
+  const sensitivity = sensitivityRows(inputs, products)
+    .slice(0, 3)
+    .map((row, index) => `${index + 1}. ${row.label}: ${row.displayDelta}`)
+    .join("\n");
+
+  return [
+    "Workshop Report - OT Cybersecurity ROI And Risk Simulation",
+    "Composed by Christian Søgaard Nielsen",
+    "",
+    `Currency: ${selectedCurrency()}`,
+    `Assumption quality: ${qualityScore.rating} confidence (${qualityScore.percent}%)`,
+    qualityLine(quality),
+    "",
+    "Environment",
+    `${inputs.sites} sites | ${inputs.productionLines} production lines | ${inputs.endpoints} OT endpoints | ${inputs.legacyPercent}% legacy OT systems`,
+    "",
+    "Expected ROI Business Case",
+    `Annual benefit: ${money(expected.annualBenefit)}`,
+    `Avoided downtime: ${money(expected.avoidedDowntime)}`,
+    `Reduced incident loss: ${money(expected.reducedIncidentLoss)}`,
+    `Operational efficiency saving: ${money(expected.operationalEfficiency)}`,
+    `Payback: ${months(expected.paybackMonths)}`,
+    `${inputs.periodYears}-year net value: ${money(expected.periodNetValue)}`,
+    `${inputs.periodYears}-year cumulative ROI: ${percent(expected.roi)}`,
+    "",
+    "Risk Simulation",
+    `Baseline mean annual loss: ${money(advanced.baseline.mean)}`,
+    `Residual mean annual loss: ${money(advanced.residual.mean)}`,
+    `Residual P95 annual loss: ${money(advanced.residual.p95)}`,
+    `Mean annual risk reduction: ${money(advanced.annualRiskReduction)}`,
+    `Confidence-adjusted reduction: ${percent(advanced.confidenceAdjustedReduction * 100)}`,
+    "",
+    "Top Sensitivity Drivers",
+    sensitivity,
     "",
     "Disclaimer: This calculator is for business case estimation only. All assumptions must be validated with the customer's finance, OT and risk teams.",
   ].join("\n");
@@ -329,13 +524,19 @@ function buildSummary(inputs, products) {
 function render() {
   const inputs = collectInputs();
   const products = getSelectedProducts();
+  const quality = collectQualityInputs();
+  const score = calculateQualityScore(quality);
   const baseReduction = combinedRiskReduction(products);
 
   selectedCountEl.textContent = `${products.length} selected`;
   effectiveReductionEl.textContent = `Expected combined reduction: ${percent(baseReduction * 100)}`;
+  qualityScoreEl.textContent = `${score.rating} confidence | ${score.percent}%`;
   renderScenarioCards(inputs, products);
   renderAdvancedRisk(products);
-  summaryTextEl.textContent = buildSummary(inputs, products);
+  renderSensitivity(inputs, products);
+  summaryTextEl.textContent = buildRoiSummary(inputs, products, quality);
+  riskSummaryTextEl.textContent = buildRiskSummary(products, quality);
+  reportTextEl.textContent = buildReport(inputs, products, quality);
 }
 
 function selectTab(tabId) {
@@ -347,12 +548,11 @@ function selectTab(tabId) {
   });
 }
 
-async function copySummary() {
-  const summary = summaryTextEl.textContent;
+async function copyText(text, successMessage, sourceElement) {
   if (navigator.clipboard && window.isSecureContext) {
     try {
-      await navigator.clipboard.writeText(summary);
-      copyStatusEl.textContent = "Copied to clipboard";
+      await navigator.clipboard.writeText(text);
+      copyStatusEl.textContent = successMessage;
       setTimeout(() => {
         copyStatusEl.textContent = "Ready";
       }, 1800);
@@ -363,7 +563,7 @@ async function copySummary() {
   }
 
   const textArea = document.createElement("textarea");
-  textArea.value = summary;
+  textArea.value = text;
   textArea.setAttribute("readonly", "");
   textArea.style.position = "fixed";
   textArea.style.left = "-9999px";
@@ -374,7 +574,7 @@ async function copySummary() {
 
   try {
     const copied = document.execCommand("copy");
-    copyStatusEl.textContent = copied ? "Copied to clipboard" : "Clipboard copy blocked";
+    copyStatusEl.textContent = copied ? successMessage : "Clipboard copy blocked";
   } catch {
     copyStatusEl.textContent = "Clipboard copy blocked";
   } finally {
@@ -384,7 +584,7 @@ async function copySummary() {
   if (copyStatusEl.textContent === "Clipboard copy blocked") {
     const selection = window.getSelection();
     const range = document.createRange();
-    range.selectNodeContents(summaryTextEl);
+    range.selectNodeContents(sourceElement);
     selection.removeAllRanges();
     selection.addRange(range);
   }
@@ -394,13 +594,24 @@ async function copySummary() {
   }, 1800);
 }
 
+function copySummary() {
+  return copyText(summaryTextEl.textContent, "ROI summary copied to clipboard", summaryTextEl);
+}
+
+function copyRiskSummary() {
+  return copyText(riskSummaryTextEl.textContent, "Risk summary copied to clipboard", riskSummaryTextEl);
+}
+
 calculator.addEventListener("input", render);
 calculator.addEventListener("submit", (event) => event.preventDefault());
 advancedModel.addEventListener("input", render);
 advancedModel.addEventListener("submit", (event) => event.preventDefault());
 productsEl.addEventListener("input", render);
 currencySelect.addEventListener("change", render);
+qualityInputs.forEach((input) => input.addEventListener("change", render));
 copySummaryButton.addEventListener("click", copySummary);
+copyRiskSummaryButton.addEventListener("click", copyRiskSummary);
+printReportButton.addEventListener("click", () => window.print());
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => selectTab(button.dataset.tab));
 });
