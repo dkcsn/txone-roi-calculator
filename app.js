@@ -122,19 +122,19 @@ function combinedRiskReduction(products) {
   return 1 - products.reduce((remainingRisk, product) => remainingRisk * (1 - product.riskReduction), 1);
 }
 
-function calculateScenario(inputs, products, scenario) {
+function calculateScenario(inputs, products, scenario, qualityMultiplier = 1) {
   const selectedReduction = combinedRiskReduction(products);
   const adjustedReduction = Math.min(0.75, selectedReduction * scenario.factor);
   const legacyMultiplier = 1 + Math.max(0, Math.min(100, inputs.legacyPercent)) / 100 * 0.35;
   const annualDowntimeExposure = inputs.incidents * inputs.downtimeHours * inputs.downtimeCost * legacyMultiplier;
   const annualRecoveryExposure = inputs.incidents * inputs.recoveryCost * legacyMultiplier;
-  const avoidedDowntime = annualDowntimeExposure * adjustedReduction;
-  const reducedIncidentLoss = annualRecoveryExposure * adjustedReduction;
+  const avoidedDowntime = annualDowntimeExposure * adjustedReduction * qualityMultiplier;
+  const reducedIncidentLoss = annualRecoveryExposure * adjustedReduction * qualityMultiplier;
 
   const annualFteCost = inputs.fteCount * inputs.fteHourlyCost * 2080;
   const environmentScale = Math.min(0.08, (inputs.sites * 0.004) + (inputs.productionLines * 0.0015) + (inputs.endpoints / 100000));
   const efficiencyRate = Math.min(0.22, (adjustedReduction * 0.1) + environmentScale);
-  const operationalEfficiency = annualFteCost * efficiencyRate;
+  const operationalEfficiency = annualFteCost * efficiencyRate * qualityMultiplier;
 
   const annualBenefit = avoidedDowntime + reducedIncidentLoss + operationalEfficiency;
   const paybackMonths = annualBenefit > 0 ? (inputs.investment / annualBenefit) * 12 : Infinity;
@@ -154,6 +154,7 @@ function calculateScenario(inputs, products, scenario) {
     roi,
     threeYearNetValue,
     threeYearRoi,
+    qualityMultiplier,
   };
 }
 
@@ -195,6 +196,11 @@ function calculateQualityScore(quality) {
   else if (percentValue >= 56) rating = "Medium";
 
   return { percent: percentValue, rating };
+}
+
+function benefitConfidenceFactor(quality) {
+  const score = calculateQualityScore(quality).percent / 100;
+  return Math.min(1, 0.55 + score * 0.45);
 }
 
 function qualityLine(quality) {
@@ -286,12 +292,12 @@ function calculateAdvancedRisk(inputs, products) {
   };
 }
 
-function expectedScenario(inputs, products) {
-  return calculateScenario(inputs, products, scenarios[1]);
+function expectedScenario(inputs, products, quality) {
+  return calculateScenario(inputs, products, scenarios[1], benefitConfidenceFactor(quality));
 }
 
-function sensitivityRows(inputs, products) {
-  const base = expectedScenario(inputs, products);
+function sensitivityRows(inputs, products, quality) {
+  const base = expectedScenario(inputs, products, quality);
   const candidateInputs = [
     ["downtimeCost", "Downtime cost per hour"],
     ["incidents", "Incidents per year"],
@@ -307,8 +313,8 @@ function sensitivityRows(inputs, products) {
     .map(([key, label]) => {
       const lowInputs = { ...inputs, [key]: Math.max(0, inputs[key] * 0.8) };
       const highInputs = { ...inputs, [key]: Math.max(0, inputs[key] * 1.2) };
-      const low = expectedScenario(lowInputs, products);
-      const high = expectedScenario(highInputs, products);
+      const low = expectedScenario(lowInputs, products, quality);
+      const high = expectedScenario(highInputs, products, quality);
       const annualDelta = Math.max(Math.abs(low.annualBenefit - base.annualBenefit), Math.abs(high.annualBenefit - base.annualBenefit));
       const roiDelta = Math.max(Math.abs(low.roi - base.roi), Math.abs(high.roi - base.roi));
 
@@ -323,15 +329,16 @@ function sensitivityRows(inputs, products) {
     .slice(0, 5);
 }
 
-function renderScenarioCards(inputs, products) {
+function renderScenarioCards(inputs, products, quality) {
+  const qualityMultiplier = benefitConfidenceFactor(quality);
   scenarioCardsEl.replaceChildren(
     ...scenarios.map((scenario) => {
-      const result = calculateScenario(inputs, products, scenario);
+      const result = calculateScenario(inputs, products, scenario, qualityMultiplier);
       const node = scenarioTemplate.content.cloneNode(true);
       const card = node.querySelector(".scenario-card");
 
       card.querySelector("h3").textContent = scenario.name;
-      card.querySelector(".scenario-pill").textContent = `${scenario.tone} | ${percent(result.adjustedReduction * 100)} risk reduction`;
+      card.querySelector(".scenario-pill").textContent = `${scenario.tone} | ${percent(result.adjustedReduction * 100)} risk | ${percent(result.qualityMultiplier * 100)} confidence`;
       card.querySelector('[data-key="annualBenefit"]').textContent = money(result.annualBenefit);
       card.querySelector('[data-key="avoidedDowntime"]').textContent = money(result.avoidedDowntime);
       card.querySelector('[data-key="reducedIncidentLoss"]').textContent = money(result.reducedIncidentLoss);
@@ -399,8 +406,8 @@ function renderAdvancedRisk(products) {
   );
 }
 
-function renderSensitivity(inputs, products) {
-  const rows = sensitivityRows(inputs, products);
+function renderSensitivity(inputs, products, quality) {
+  const rows = sensitivityRows(inputs, products, quality);
   sensitivityCardsEl.replaceChildren(
     ...rows.map((row, index) => {
       const card = document.createElement("article");
@@ -426,8 +433,9 @@ function renderSensitivity(inputs, products) {
 }
 
 function buildRoiSummary(inputs, products, quality) {
-  const expected = expectedScenario(inputs, products);
+  const expected = expectedScenario(inputs, products, quality);
   const qualityScore = calculateQualityScore(quality);
+  const qualityMultiplier = benefitConfidenceFactor(quality);
   const advanced = calculateAdvancedRisk(collectAdvancedInputs(), products);
   const productNames = products.length ? products.map((product) => product.name).join(", ") : "No products selected";
 
@@ -436,6 +444,7 @@ function buildRoiSummary(inputs, products, quality) {
     `Solution mix: ${productNames}`,
     `Currency: ${selectedCurrency()}`,
     `Assumption quality: ${qualityScore.rating} confidence (${qualityScore.percent}%)`,
+    `Benefit confidence factor applied to ROI outputs: ${percent(qualityMultiplier * 100)}`,
     qualityLine(quality),
     `Environment: ${inputs.sites} sites, ${inputs.productionLines} production lines, ${inputs.endpoints} OT endpoints, ${inputs.legacyPercent}% legacy OT systems`,
     `Expected annual benefit: ${money(expected.annualBenefit)}`,
@@ -479,10 +488,11 @@ function buildRiskSummary(products, quality) {
 }
 
 function buildReport(inputs, products, quality) {
-  const expected = expectedScenario(inputs, products);
+  const expected = expectedScenario(inputs, products, quality);
   const advanced = calculateAdvancedRisk(collectAdvancedInputs(), products);
   const qualityScore = calculateQualityScore(quality);
-  const sensitivity = sensitivityRows(inputs, products)
+  const qualityMultiplier = benefitConfidenceFactor(quality);
+  const sensitivity = sensitivityRows(inputs, products, quality)
     .slice(0, 3)
     .map((row, index) => `${index + 1}. ${row.label}: ${row.displayDelta}`)
     .join("\n");
@@ -493,6 +503,7 @@ function buildReport(inputs, products, quality) {
     "",
     `Currency: ${selectedCurrency()}`,
     `Assumption quality: ${qualityScore.rating} confidence (${qualityScore.percent}%)`,
+    `Benefit confidence factor applied to ROI outputs: ${percent(qualityMultiplier * 100)}`,
     qualityLine(quality),
     "",
     "Environment",
@@ -530,10 +541,10 @@ function render() {
 
   selectedCountEl.textContent = `${products.length} selected`;
   effectiveReductionEl.textContent = `Expected combined reduction: ${percent(baseReduction * 100)}`;
-  qualityScoreEl.textContent = `${score.rating} confidence | ${score.percent}%`;
-  renderScenarioCards(inputs, products);
+  qualityScoreEl.textContent = `${score.rating} | ${score.percent}% score | ${percent(benefitConfidenceFactor(quality) * 100)} benefit factor`;
+  renderScenarioCards(inputs, products, quality);
   renderAdvancedRisk(products);
-  renderSensitivity(inputs, products);
+  renderSensitivity(inputs, products, quality);
   summaryTextEl.textContent = buildRoiSummary(inputs, products, quality);
   riskSummaryTextEl.textContent = buildRiskSummary(products, quality);
   reportTextEl.textContent = buildReport(inputs, products, quality);
