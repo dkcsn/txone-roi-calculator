@@ -451,6 +451,23 @@ input[type="checkbox"] {
   color: #fff;
 }
 
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.method-card code {
+  display: block;
+  overflow-wrap: anywhere;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  padding: 10px;
+  background: rgba(13, 5, 27, 0.72);
+  color: #fff;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
 .advanced-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.34fr);
@@ -539,6 +556,7 @@ input[type="checkbox"] {
   .scenario-grid,
   .advanced-layout,
   .advanced-results,
+  .method-grid,
   .guidance-grid {
     grid-template-columns: 1fr;
   }
