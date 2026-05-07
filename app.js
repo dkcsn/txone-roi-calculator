@@ -319,8 +319,8 @@ function buildSummary(inputs, products) {
     `Expected payback: ${months(expected.paybackMonths)}`,
     `${inputs.periodYears}-year net value: ${money(expected.periodNetValue)}`,
     `${inputs.periodYears}-year cumulative ROI: ${percent(expected.roi)}`,
-    `Advanced model mean annual risk reduction: ${money(advanced.annualRiskReduction)}`,
-    `Advanced model residual P95 annual loss: ${money(advanced.residual.p95)}`,
+    `Risk simulation mean annual risk reduction: ${money(advanced.annualRiskReduction)}`,
+    `Risk simulation residual P95 annual loss: ${money(advanced.residual.p95)}`,
     "",
     "Disclaimer: This calculator is for business case estimation only. All assumptions must be validated with the customer's finance, OT and risk teams.",
   ].join("\n");
