@@ -519,6 +519,15 @@ input[type="checkbox"] {
   font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
+.site-credit {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+  color: rgba(237, 237, 239, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 @media (max-width: 980px) {
   .topbar,
   .panel-head {
@@ -586,5 +595,9 @@ input[type="checkbox"] {
 
   .currency-control select {
     width: 100%;
+  }
+
+  .site-credit {
+    justify-content: center;
   }
 }
